@@ -46,6 +46,7 @@ public class JpaItemRepository implements ItemRepository {
     @Override
     public List<Item> findAll(ItemSearchCond cond) {
         String jpql = "select i from Item i";
+        TypedQuery<Item> query = em.createQuery(jpql, Item.class);
 
         String itemName = cond.getItemName();
         Integer maxPrice = cond.getMaxPrice();
@@ -58,6 +59,7 @@ public class JpaItemRepository implements ItemRepository {
         if (StringUtils.hasText(itemName)) {
             jpql += " i.itemName like concat('%',:itemName,'%')";
             andFlag = true;
+            query.setParameter("itemName", itemName);
         }
 
         if (maxPrice != null) {
@@ -65,19 +67,10 @@ public class JpaItemRepository implements ItemRepository {
                 jpql += " and";
             }
             jpql += " i.price <= :maxPrice";
-        }
-
-        log.info("jpql={}", jpql);
-
-        TypedQuery<Item> query = em.createQuery(jpql, Item.class);
-        if (StringUtils.hasText(itemName)) {
-            query.setParameter("itemName", itemName);
-        }
-
-        if (maxPrice != null) {
             query.setParameter("maxPrice", maxPrice);
         }
 
+        log.info("jpql={}", jpql);
         return query.getResultList();
     }
 }
